@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Manrope, Geist_Mono } from "next/font/google";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 
 const manrope = Manrope({
@@ -28,7 +29,10 @@ export default function RootLayout({
       lang="en"
       className={`${manrope.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        {children}
+        <SpeedInsights />
+      </body>
     </html>
   );
 }
