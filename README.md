@@ -1,36 +1,56 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Korso Agent
 
-## Getting Started
+A RAG chatbot that answers Playwright questions, grounded in the official
+Playwright documentation. Bring your own API key (OpenAI, Anthropic, or
+Google Gemini) — nothing is stored server-side.
 
-First, run the development server:
+## Getting started
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000), add your API key for
+whichever provider you want in the modal, and start asking Playwright
+questions.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Docs ingestion pipeline
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+The chatbot answers from a local, pre-built index of the Playwright docs
+(`data/embeddings/index.json`) rather than calling out to the docs site at
+request time. To rebuild that index from the latest `microsoft/playwright`
+docs:
 
-## Learn More
+```bash
+npm run ingest
+```
 
-To learn more about Next.js, take a look at the following resources:
+This runs the full pipeline (fetch → parse → chunk → embed) and writes
+`data/embeddings/index.json`. Each stage can also be run and inspected on
+its own:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+npm run ingest:fetch  # pulls docs/src/**.md from GitHub into data/raw-docs/
+npm run ingest:parse  # strips frontmatter/directives, prints a summary
+npm run ingest:chunk  # H2/H3-based chunking, prints token-size stats
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+`data/raw-docs/` is gitignored (re-fetched on demand); the generated
+`data/embeddings/index.json` is committed so the app has something to serve
+without requiring a fresh ingestion run.
 
-## Deploy on Vercel
+A GitHub Action (`.github/workflows/refresh-docs.yml`) re-runs this weekly
+and on-demand, committing the refreshed index if the docs changed. It hasn't
+been exercised in a live Actions run yet — worth a smoke test after the
+first push.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Learn more
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Built with [Next.js](https://nextjs.org), the [Vercel AI SDK](https://ai-sdk.dev),
+and a local [`@xenova/transformers`](https://www.npmjs.com/package/@xenova/transformers)
+embedding model (`Xenova/all-MiniLM-L6-v2`) for retrieval.
+
+See [ARCHITECTURE.md](./ARCHITECTURE.md) for the system design, key
+technical decisions, and a couple of real performance bugs found and fixed
+along the way.

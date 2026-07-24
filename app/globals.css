@@ -1,26 +1,936 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@custom-variant dark (&:is(.dark *));
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-manrope);
   --font-mono: var(--font-geist-mono);
+  --font-heading: var(--font-sans);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+:root {
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --radius: 0.625rem;
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer components {
+  .markdown-content > :first-child {
+    margin-top: 0;
+  }
+  .markdown-content > :last-child {
+    margin-bottom: 0;
+  }
+  .markdown-content p {
+    margin: 0.4em 0;
+  }
+  .markdown-content ul,
+  .markdown-content ol {
+    margin: 0.4em 0;
+    padding-left: 1.25em;
+  }
+  .markdown-content ul {
+    list-style: disc;
+  }
+  .markdown-content ol {
+    list-style: decimal;
+  }
+  .markdown-content li {
+    margin: 0.15em 0;
+  }
+  .markdown-content h1,
+  .markdown-content h2,
+  .markdown-content h3 {
+    margin: 0.6em 0 0.3em;
+    font-weight: 600;
+  }
+  .markdown-content h1 {
+    font-size: 1.15em;
+  }
+  .markdown-content h2 {
+    font-size: 1.08em;
+  }
+  .markdown-content h3 {
+    font-size: 1.02em;
+  }
+  .markdown-content blockquote {
+    margin: 0.4em 0;
+    padding-left: 0.75em;
+    border-left: 2px solid var(--border);
+    color: var(--muted-foreground);
+  }
+  .markdown-content pre {
+    margin: 0.5em 0;
+    overflow-x: auto;
+  }
+  .markdown-content table {
+    margin: 0.5em 0;
+    border-collapse: collapse;
+    font-size: 0.9em;
+  }
+  .markdown-content th,
+  .markdown-content td {
+    border: 1px solid var(--border);
+    padding: 0.3em 0.6em;
+  }
+}
+
+/* =======================================================================
+   Korso Agent scene: full-bleed day/night photo background + frosted-glass
+   chat UI. Ported from the approved design mockup. Every mode-conditional
+   rule below is scoped by the [data-scene="day"|"night"] attribute set on
+   the ChatWindow root — this is deliberately independent of Tailwind's
+   .dark class (which this app doesn't use for OS theming), since "day" and
+   "night" here follow the user's chosen mode / local clock time, not the
+   viewer's OS light/dark preference.
+   ======================================================================= */
+
+:root {
+  /* Sampled from the actual Korso logo/avatar art (the chain, sunglasses,
+     and "KORSO AI" lettering) — ties the UI accent to the mascot's own
+     brand color instead of an unrelated background detail. */
+  --gold-day: #dbae4f;
+  --gold-night: #eab54a;
+  --ink-day: #10282e;
+  --ink-night: #e9e5f6;
+}
+/* A glow-ready rgba twin of the accent, for the one spot (a @keyframes
+   glow) that can't be scoped with a [data-scene] selector directly —
+   keyframes can reference custom properties, so this just needs to be
+   redefined per scene and inherited down to wherever it's used. */
+[data-scene="day"] { --gold-glow: rgba(219,174,79,0.45); }
+[data-scene="night"] { --gold-glow: rgba(234,181,74,0.45); }
+
+/* ---------- Background scene ---------- */
+.scene .sky {
+  position: absolute;
+  inset: 0;
+  transition: opacity 300ms ease;
+  /* Content-first: the landscape is atmosphere, not the focus. A soft blur
+     keeps it recognizable without competing with the chat panel — but day
+     and night now get distinct personalities on top of that shared base:
+     day reads bright/fresh, night reads moody/immersive. scale(1.04)
+     covers the edge softening the blur would otherwise leave visible. */
+  animation: korso-sky-drift 48s ease-in-out infinite;
+}
+/* Ambient only — intentionally not tied to chat/thinking state, so the
+   environment stays calm regardless of what's happening in the panel. */
+@keyframes korso-sky-drift {
+  0%, 100% { transform: scale(1.04); }
+  50% { transform: scale(1.07); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sky { animation: none; transform: scale(1.04); }
+}
+[data-scene="day"] .sky {
+  filter: blur(3px) brightness(1.05) contrast(0.95) saturate(0.95);
+}
+[data-scene="night"] .sky {
+  filter: blur(4px) brightness(0.78) contrast(0.95) saturate(0.85);
+}
+.scene .stars-layer {
+  position: absolute;
+  inset: 0;
+  transition: opacity 300ms ease;
+}
+.scene .star {
+  position: absolute;
+  background: #f4f1ff;
+  border-radius: 50%;
+  animation: korso-twinkle 4.5s ease-in-out infinite;
+}
+@keyframes korso-twinkle {
+  0%, 100% { opacity: 0.25; }
+  50% { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .scene .star { animation: none; opacity: 0.7; }
+}
+
+.scene .water-shimmer {
+  position: absolute;
+  bottom: 0; left: 0; right: 0; height: 30%;
+  overflow: hidden;
+}
+.scene .water-shimmer::after {
+  content: "";
+  position: absolute; inset: 0;
+  background: repeating-linear-gradient(100deg, rgba(255,255,255,0.08) 0 2px, transparent 2px 40px);
+  animation: korso-shimmer 9s linear infinite;
+  mix-blend-mode: overlay;
+}
+@keyframes korso-shimmer {
+  from { transform: translateX(0); }
+  to { transform: translateX(-160px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .scene .water-shimmer::after { animation: none; }
+}
+
+.scene .scene-overlay {
+  position: absolute;
+  inset: 0;
+  /* Dims the photo so the conversation reads clearly regardless of how
+     bright/detailed that section of the landscape is — the vignette below
+     adds extra depth at the edges on top of this. Day stays lighter/fresher
+     (per section 3 of the design doc); night leans more immersive. */
+  transition: background 300ms ease;
+}
+[data-scene="day"] .scene-overlay { background: rgba(15, 23, 42, 0.28); }
+[data-scene="night"] .scene-overlay { background: rgba(15, 23, 42, 0.42); }
+.scene .scene-vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 40%, rgba(0,0,0,0) 45%, rgba(0,0,0,0.28) 100%);
+}
+
+/* ---------- Mode instrument (toggle) ---------- */
+.instrument {
+  position: absolute; top: 22px; right: 22px;
+  display: flex; align-items: center; gap: 2px;
+  padding: 5px;
+  border-radius: 999px;
+  backdrop-filter: blur(16px) saturate(150%);
+  -webkit-backdrop-filter: blur(16px) saturate(150%);
+  transition: background 300ms ease, border-color 300ms ease;
+  z-index: 10;
+}
+[data-scene="day"] .instrument {
+  background: rgba(255,255,255,0.80);
+  backdrop-filter: blur(30px) saturate(180%);
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
+  border: 1px solid rgba(15,23,42,0.08);
+  box-shadow: 0 8px 24px rgba(15,23,42,0.12);
+}
+[data-scene="night"] .instrument {
+  background: rgba(15,20,30,0.72);
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 8px 28px rgba(0,0,0,0.35);
+}
+.instrument button {
+  appearance: none; border: none; background: transparent;
+  display: flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 220ms ease, color 220ms ease, transform 150ms ease;
+}
+.instrument button svg { width: 15px; height: 15px; }
+[data-scene="day"] .instrument button { color: rgba(16,40,46,0.62); }
+[data-scene="night"] .instrument button { color: rgba(233,229,246,0.6); }
+.instrument button:hover { transform: rotate(15deg) scale(1.05); }
+.instrument button:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+.instrument button:active { transform: scale(0.92); }
+.instrument button[aria-pressed="true"] {
+  color: #04262a;
+  transform: scale(1.02);
+}
+[data-scene="day"] .instrument button[aria-pressed="true"] { background: var(--gold-day); }
+[data-scene="night"] .instrument button[aria-pressed="true"] { background: var(--gold-night); }
+
+/* ---------- Coordinates + credit tags ---------- */
+.coords {
+  position: absolute; bottom: 20px; left: 22px;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: 10.5px; letter-spacing: 0.03em;
+  padding: 6px 10px;
+  border-radius: 7px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: background 300ms ease, color 300ms ease;
+  z-index: 10;
+}
+[data-scene="day"] .coords { background: rgba(255,255,255,0.2); color: rgba(16,40,46,0.75); }
+[data-scene="night"] .coords { background: rgba(12,14,26,0.4); color: rgba(233,229,246,0.55); }
+
+/* Deliberately no background pad here — the disclaimer + credit line sit
+   directly on the photo, made legible with the same white-text-plus-shadow
+   treatment as the hero greeting rather than a glass chip. */
+.site-footer {
+  position: absolute;
+  bottom: 18px; left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  z-index: 10;
+  text-align: center;
+  transition: color 300ms ease;
+}
+.footer-disclaimer {
+  margin: 0;
+  font-size: 13px;
+  opacity: 0.8;
+}
+.footer-credit {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: 13px;
+  letter-spacing: 0.02em;
+}
+/* Matches .footer-disclaimer's opacity so the credit line doesn't read
+   heavier than the line above it — scoped to the text only so it doesn't
+   compound with the icons' own independent opacity/hover treatment below. */
+.footer-credit > span { opacity: 0.8; }
+.footer-credit a {
+  display: flex;
+  color: inherit;
+  opacity: 0.8;
+  transition: opacity 150ms ease;
+}
+.footer-credit a:hover { opacity: 1; }
+.footer-credit svg { width: 15px; height: 15px; }
+[data-scene="day"] .site-footer {
+  color: rgba(255,255,255,0.94);
+  text-shadow: 0 1px 10px rgba(6,30,36,0.45), 0 1px 3px rgba(6,30,36,0.55);
+}
+[data-scene="night"] .site-footer {
+  color: rgba(243,238,252,0.9);
+  text-shadow: 0 0 14px rgba(122,106,181,0.4), 0 1px 6px rgba(0,0,0,0.55);
+}
+
+/* ---------- Center stack (logo + greeting + panel) ---------- */
+.center-stack {
+  position: relative;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  width: 100%;
+  min-height: 0;
+  padding: 54px 20px 90px;
+}
+
+.brand-mark {
+  flex-shrink: 0;
+  display: block;
+  object-fit: cover;
+  border: 1px solid rgba(217,178,92,0.9);
+  box-shadow: 0 0 0 1px rgba(217,178,92,0.22);
+}
+
+.hero-logo {
+  width: 124px; height: 151px;
+  border-radius: 18px;
+  object-position: top center;
+  box-shadow: 0 0 0 1px rgba(217,178,92,0.22), 0 14px 34px rgba(0,0,0,0.4);
+  opacity: 0;
+  animation: korso-logo-in 800ms ease-out 150ms forwards;
+}
+@keyframes korso-logo-in {
+  from { opacity: 0; transform: translateY(10px) scale(0.94); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.hero-greeting {
+  width: min(640px, 86vw);
+  text-align: center;
+  opacity: 0;
+  animation: korso-greeting-in 850ms ease-out 380ms forwards;
+}
+@keyframes korso-greeting-in {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.hero-greeting h2 {
+  margin: 0;
+  font-size: clamp(23px, 3.6vw, 33px);
+  font-weight: 700;
+  text-wrap: balance;
+  transition: color 300ms ease, text-shadow 300ms ease;
+}
+.hero-greeting p {
+  margin: 10px 0 0;
+  font-size: 16px;
+  line-height: 1.6;
+  letter-spacing: 0.01em;
+  transition: color 300ms ease, text-shadow 300ms ease;
+}
+[data-scene="day"] .hero-greeting h2 {
+  color: #ffffff;
+  text-shadow: 0 2px 22px rgba(6,30,36,0.4), 0 1px 4px rgba(6,30,36,0.55);
+}
+[data-scene="day"] .hero-greeting p {
+  color: rgba(255,255,255,0.88);
+  text-shadow: 0 1px 14px rgba(6,30,36,0.35);
+}
+[data-scene="night"] .hero-greeting h2 {
+  color: #f3eefc;
+  text-shadow: 0 0 30px rgba(122,106,181,0.55), 0 2px 10px rgba(0,0,0,0.55);
+}
+[data-scene="night"] .hero-greeting p {
+  color: rgba(242,238,252,0.82);
+  text-shadow: 0 0 18px rgba(122,106,181,0.4), 0 1px 8px rgba(0,0,0,0.5);
+}
+
+/* ---------- Chat panel ---------- */
+.chat-panel {
+  position: relative;
+  width: min(1120px, 94vw);
+  height: min(320px, 44vh);
+  flex-shrink: 0;
+  display: flex; flex-direction: column;
+  border-radius: 22px;
+  overflow: hidden;
+  backdrop-filter: blur(28px) saturate(150%);
+  -webkit-backdrop-filter: blur(28px) saturate(150%);
+  opacity: 0;
+  animation: korso-panel-in 850ms ease-out 700ms forwards;
+  transition: background 300ms ease, border-color 300ms ease, box-shadow 300ms ease;
+}
+@keyframes korso-panel-in {
+  from { opacity: 0; transform: translateY(26px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-logo, .hero-greeting, .chat-panel { opacity: 1; animation: none; transform: none; }
+}
+/* Day/night personality lives in the panel chrome now (light frosted glass
+   by day, dark immersive glass by night) — but message content stays solid
+   and unchanged either way (see .bubble below), per the rule that
+   transparency applies to workspace/panels, never to text content. */
+[data-scene="day"] .chat-panel {
+  background: rgba(255, 255, 255, 0.80);
+  backdrop-filter: blur(30px) saturate(180%);
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.14);
+}
+[data-scene="night"] .chat-panel {
+  background: rgba(15, 20, 30, 0.72);
+  backdrop-filter: blur(24px) saturate(150%);
+  -webkit-backdrop-filter: blur(24px) saturate(150%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+}
+
+/* Once a key is saved, the chat panel takes over the vertical space the
+   hero logo/greeting used to occupy (they're gone in this state) — flex:1
+   inside .center-stack's column layout fills whatever room padding leaves,
+   no fixed height needed here unlike the landing-state panel. */
+.chat-panel--full {
+  flex: 1 1 0;
+  height: auto;
+  min-height: 0;
+}
+
+.chat-head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px;
+  padding: 14px 18px;
+  border-bottom: 1px solid transparent;
+  transition: border-color 300ms ease;
+}
+[data-scene="day"] .chat-head { border-color: rgba(15,23,42,0.08); }
+[data-scene="night"] .chat-head { border-color: rgba(255,255,255,0.08); }
+.chat-head h1 {
+  margin: 0;
+  font-size: 18px; font-weight: 700; letter-spacing: 0.01em;
+  transition: color 300ms ease;
+}
+.chat-head p {
+  margin: 3px 0 0; font-size: 12.5px; letter-spacing: 0.03em; text-transform: uppercase;
+  transition: color 300ms ease;
+}
+/* The connect panel's subtitle is a real sentence, not a short eyebrow
+   label — all-caps would fight readability across two lines. */
+.connect-panel .chat-head p {
+  font-size: 13px;
+  line-height: 1.5;
+  letter-spacing: normal;
+  text-transform: none;
+}
+[data-scene="day"] .chat-head h1 { color: #0f172a; }
+[data-scene="day"] .chat-head p { color: #64748b; }
+[data-scene="night"] .chat-head h1 { color: #ffffff; }
+[data-scene="night"] .chat-head p { color: #94a3b8; }
+
+.provider-chip, .clear-chat-btn {
+  appearance: none;
+  border: none;
+  display: flex; align-items: center; gap: 5px;
+  font-size: 12px; font-weight: 600;
+  padding: 5px 11px; border-radius: 999px;
+  transition: background 200ms ease, color 300ms ease, opacity 150ms ease;
+  cursor: pointer;
+}
+.provider-chip svg, .clear-chat-btn svg { width: 13px; height: 13px; }
+[data-scene="day"] .provider-chip, [data-scene="day"] .clear-chat-btn { background: rgba(15,23,42,0.06); color: #0f172a; }
+[data-scene="day"] .provider-chip:hover, [data-scene="day"] .clear-chat-btn:hover { background: rgba(15,23,42,0.1); }
+[data-scene="night"] .provider-chip, [data-scene="night"] .clear-chat-btn { background: rgba(255,255,255,0.08); color: #e2e8f0; }
+[data-scene="night"] .provider-chip:hover, [data-scene="night"] .clear-chat-btn:hover { background: rgba(255,255,255,0.14); }
+.clear-chat-btn {
+  padding: 8px;
+  aspect-ratio: 1;
+}
+
+/* ---------- Messages ---------- */
+.messages {
+  flex: 1; min-height: 0; overflow-y: auto;
+  padding: 18px; display: flex; flex-direction: column; gap: 12px;
+}
+.msg {
+  display: flex; gap: 9px; max-width: 88%;
+  animation: korso-msg-in 180ms ease-out;
+}
+@keyframes korso-msg-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .msg { animation: none; }
+}
+.msg.user { align-self: flex-end; flex-direction: row-reverse; }
+
+.avatar {
+  width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700;
+}
+.avatar.assistant { object-position: center; }
+[data-scene="day"] .avatar.user { background: rgba(30,34,44,0.85); color: #f1f5f9; }
+[data-scene="night"] .avatar.user { background: rgba(255,255,255,0.85); color: #0f172a; }
+
+/* Idle → thinking is the only avatar state change — no spinning/bouncing,
+   just a slow breathing scale, on while a response is being composed (from
+   submit through the end of streaming). The glow is a static box-shadow
+   (painted once) rather than animated — box-shadow isn't a compositor-only
+   property like transform, so animating it continuously for the whole
+   thinking+streaming window forces a repaint every frame, which is real
+   overhead stacking on top of the background's own ambient animations. */
+.avatar.thinking {
+  animation: korso-breathe 2.6s ease-in-out infinite;
+  box-shadow: 0 0 10px var(--gold-glow);
+}
+@keyframes korso-breathe {
+  0%, 100% { transform: scale(0.98); }
+  50% { transform: scale(1.04); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .avatar.thinking { animation: none; }
+}
+
+/* Solid, high-contrast bubbles — content should never have the background
+   photo showing through the text. */
+.bubble {
+  padding: 18px 22px; border-radius: 18px;
+  font-size: 16px; line-height: 1.6;
+}
+.bubble.assistant {
+  background: rgba(255,255,255,0.96); color: #111827;
+  border-top-left-radius: 6px;
+}
+.bubble.user {
+  color: #04262a;
+  border-top-right-radius: 6px;
+}
+[data-scene="day"] .bubble.user { background: var(--gold-day); box-shadow: 0 0 18px rgba(201,154,58,0.3); }
+[data-scene="night"] .bubble.user { background: var(--gold-night); box-shadow: 0 0 18px rgba(234,181,74,0.3); }
+.bubble.assistant :where(a) { color: inherit; }
+
+/* Replaces a spinner: a single pulsing dot + context-aware status text,
+   living inside an otherwise-normal assistant bubble. Disappears the
+   moment real streamed content takes its place. */
+.thinking-bubble {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  font-size: 15px;
+  font-style: italic;
+}
+[data-scene="day"] .thinking-bubble { color: #64748b; }
+[data-scene="night"] .thinking-bubble { color: #94a3b8; }
+.thinking-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  animation: korso-thinking-pulse 1.4s ease-in-out infinite;
+}
+[data-scene="day"] .thinking-dot { background: var(--gold-day); }
+[data-scene="night"] .thinking-dot { background: var(--gold-night); }
+@keyframes korso-thinking-pulse {
+  0%, 100% { opacity: 0.3; transform: scale(0.85); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .thinking-dot { animation: none; opacity: 0.8; }
+}
+
+.chat-error {
+  margin: 0 18px 10px;
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-size: 12px;
+}
+[data-scene="day"] .chat-error { background: rgba(220,38,38,0.10); color: #7f1d1d; }
+[data-scene="night"] .chat-error { background: rgba(220,38,38,0.14); color: #fecaca; }
+
+.scroll-bottom-btn {
+  position: absolute;
+  bottom: 84px; left: 50%;
+  transform: translateX(-50%);
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  border: none;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  backdrop-filter: blur(16px) saturate(150%);
+  -webkit-backdrop-filter: blur(16px) saturate(150%);
+  transition: background 200ms ease, transform 150ms ease, box-shadow 200ms ease;
+  animation: korso-msg-in 180ms ease-out;
+  z-index: 5;
+}
+.scroll-bottom-btn:hover { transform: translateX(-50%) scale(1.08); }
+.scroll-bottom-btn:active { transform: translateX(-50%) scale(0.95); }
+.scroll-bottom-btn svg { width: 16px; height: 16px; }
+[data-scene="day"] .scroll-bottom-btn {
+  background: rgba(30,34,44,0.85);
+  color: #f1f5f9;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.4);
+}
+[data-scene="night"] .scroll-bottom-btn {
+  background: rgba(255,255,255,0.85);
+  color: #0f172a;
+  box-shadow: 0 6px 18px rgba(15,23,42,0.18);
+}
+
+/* ---------- Prompt bar ---------- */
+/* A distinct, immediately-recognizable, "floating" surface — lifted off
+   the message area with its own shadow rather than fused to the panel
+   edge, per the floating-composer guidance. Semi-transparent (per the
+   glass-layer table), but text/placeholder stay solid-contrast per mode. */
+.prompt-bar {
+  display: flex; align-items: center; gap: 9px;
+  margin: 4px 18px 18px; padding: 6px 8px 6px 18px;
+  min-height: 52px;
+  border-radius: 16px;
+  transition: background 300ms ease, border-color 300ms ease, box-shadow 200ms ease;
+}
+[data-scene="day"] .prompt-bar:focus-within {
+  border-color: rgba(201,154,58,0.5);
+  box-shadow: 0 0 20px rgba(201,154,58,0.15);
+}
+[data-scene="night"] .prompt-bar:focus-within {
+  border-color: rgba(234,181,74,0.5);
+  box-shadow: 0 0 20px rgba(234,181,74,0.15);
+}
+[data-scene="day"] .prompt-bar {
+  background: rgba(15,23,42,0.06);
+  border: 1px solid rgba(15,23,42,0.12);
+  box-shadow: 0 8px 24px rgba(15,23,42,0.08);
+}
+[data-scene="night"] .prompt-bar {
+  background: rgba(255,255,255,0.10);
+  border: 1px solid rgba(255,255,255,0.18);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+}
+.prompt-bar textarea {
+  flex: 1; border: none; background: transparent; outline: none; resize: none;
+  font-size: 16px; font-family: inherit;
+  max-height: 8rem; min-height: 1.5rem;
+  padding: 6px 0;
+  transition: color 300ms ease;
+}
+[data-scene="day"] .prompt-bar textarea { color: #0f172a; }
+[data-scene="night"] .prompt-bar textarea { color: #f1f5f9; }
+.prompt-bar textarea::placeholder { color: #9ca3af; }
+.send-btn {
+  width: 36px; height: 36px; border-radius: 50%; border: none;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  cursor: pointer;
+  transition: transform 180ms ease, box-shadow 180ms ease, opacity 150ms ease;
+}
+[data-scene="day"] .send-btn { background: var(--gold-day); }
+[data-scene="night"] .send-btn { background: var(--gold-night); }
+.send-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.send-btn:not(:disabled):hover { transform: scale(1.08); }
+[data-scene="day"] .send-btn:not(:disabled):hover { box-shadow: 0 0 16px rgba(201,154,58,0.5); }
+[data-scene="night"] .send-btn:not(:disabled):hover { box-shadow: 0 0 16px rgba(234,181,74,0.5); }
+.send-btn:not(:disabled):active { transform: scale(0.95); }
+.send-btn svg { width: 15px; height: 15px; color: #04262a; }
+
+/* ---------- Connect panel (first-time landing form) ---------- */
+/* A compact "connect account" card, not the wide conversation workspace —
+   overrides .chat-panel's width rather than sharing it. */
+.connect-panel {
+  width: min(460px, 90vw);
+  height: auto;
+}
+
+.connect-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 14px;
+  padding: 8px 22px 26px;
+}
+
+.connect-providers {
+  display: flex;
+  gap: 6px;
+  padding: 4px;
+  border-radius: 999px;
+  transition: background 300ms ease;
+}
+[data-scene="day"] .connect-providers { background: rgba(15,23,42,0.06); }
+[data-scene="night"] .connect-providers { background: rgba(255,255,255,0.06); }
+.connect-providers button {
+  flex: 1;
+  appearance: none; border: none; background: transparent; cursor: pointer;
+  padding: 9px 10px;
+  border-radius: 999px;
+  font-size: 12.5px; font-weight: 600;
+  transition: background 220ms ease, color 220ms ease;
+}
+[data-scene="day"] .connect-providers button { color: #64748b; }
+[data-scene="night"] .connect-providers button { color: #94a3b8; }
+.connect-providers button[aria-pressed="true"] {
+  color: #04262a;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+[data-scene="day"] .connect-providers button[aria-pressed="true"] { background: var(--gold-day); }
+[data-scene="night"] .connect-providers button[aria-pressed="true"] { background: var(--gold-night); }
+
+.connect-key-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: 52px;
+  border-radius: 16px;
+  padding: 2px 40px 2px 18px;
+  transition: background 300ms ease, border-color 300ms ease, box-shadow 200ms ease;
+}
+[data-scene="day"] .connect-key-row:focus-within {
+  border-color: rgba(201,154,58,0.5);
+  box-shadow: 0 0 20px rgba(201,154,58,0.15);
+}
+[data-scene="night"] .connect-key-row:focus-within {
+  border-color: rgba(234,181,74,0.5);
+  box-shadow: 0 0 20px rgba(234,181,74,0.15);
+}
+[data-scene="day"] .connect-key-row { background: rgba(15,23,42,0.06); border: 1px solid rgba(15,23,42,0.12); }
+[data-scene="night"] .connect-key-row { background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); }
+.connect-key-row input {
+  flex: 1;
+  border: none; background: transparent; outline: none;
+  font-size: 15px;
+  padding: 11px 0;
+  font-family: inherit;
+  transition: color 300ms ease;
+}
+[data-scene="day"] .connect-key-row input { color: #0f172a; }
+[data-scene="night"] .connect-key-row input { color: #f1f5f9; }
+.connect-key-row input::placeholder { color: #9ca3af; }
+
+.connect-key-status {
+  position: absolute; right: 12px; top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  pointer-events: none;
+}
+.connect-key-status svg { width: 16px; height: 16px; }
+.connect-key-status .checking { color: rgba(200,200,210,0.7); }
+[data-scene="day"] .connect-key-status .valid { color: var(--gold-day); }
+[data-scene="night"] .connect-key-status .valid { color: var(--gold-night); }
+.connect-key-status .invalid { color: #ef4444; }
+.connect-key-status .unverified { color: #f59e0b; }
+/* Only the invalid-state X is interactive (clears the key) — the other
+   icons stay purely informational, so pointer-events is re-enabled just
+   for this button rather than on the whole status slot. */
+.connect-key-status button.invalid {
+  pointer-events: auto;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+}
+.connect-key-status button.invalid:hover { opacity: 0.75; }
+
+.connect-error {
+  margin: -6px 0 0;
+  font-size: 12.5px;
+}
+[data-scene="day"] .connect-error { color: #b91c1c; }
+[data-scene="night"] .connect-error { color: #fca5a5; }
+
+.connect-warning {
+  margin: -6px 0 0;
+  font-size: 12.5px;
+}
+[data-scene="day"] .connect-warning { color: #b45309; }
+[data-scene="night"] .connect-warning { color: #fbbf24; }
+
+.connect-submit {
+  appearance: none; border: none; cursor: pointer;
+  padding: 12px 18px;
+  border-radius: 14px;
+  font-size: 14px; font-weight: 600;
+  color: #04262a;
+  transition: opacity 150ms ease, transform 150ms ease, filter 150ms ease;
+}
+[data-scene="day"] .connect-submit { background: var(--gold-day); }
+[data-scene="night"] .connect-submit { background: var(--gold-night); }
+.connect-submit:disabled { opacity: 0.45; cursor: not-allowed; }
+.connect-submit:not(:disabled):hover { transform: translateY(-1px); filter: brightness(1.05); }
+.connect-submit:not(:disabled):active { transform: scale(0.98); }
+
+/* ---------- Mobile (<=640px) ---------- */
+@media (max-width: 640px) {
+  /* Purely decorative flavor text — with the placard gone, .instrument
+     (mode toggle) is the only thing left up top, but .coords still has
+     nowhere non-conflicting to sit down by the footer on a narrow screen,
+     so it's dropped rather than repositioned. */
+  .coords { display: none; }
+
+  /* .instrument (44px tall, top:22px) is now the only corner element
+     .hero-logo needs to clear — this guarantees that regardless of exact
+     viewport width, without needing to know hero-logo's centered position. */
+  /* Bottom padding is deliberately generous: .site-footer stays
+     absolutely positioned (pinned 18px from whatever the now auto-height
+     root's bottom edge is) rather than joining normal flow, and absolute
+     elements don't contribute to that auto height — so .center-stack has
+     to reserve enough of its own trailing space for the tallest the
+     footer gets (two wrapped lines at 11px) to guarantee clearance. */
+  .center-stack { padding-top: 84px; padding-bottom: 140px; }
+
+  .footer-disclaimer, .footer-credit { font-size: 11px; }
+  .site-footer { max-width: 92vw; }
+
+  /* Landing/connect state: let it scroll instead of clipping when the
+     stack (logo + greeting + connect panel + footer) is taller than a
+     short phone viewport. .scene's background is position:fixed (see
+     background-scene.tsx), so it stays pinned to the viewport either way —
+     only the foreground content scrolls. The connected chat state is
+     untouched, keeping its hard h-screen cap so the composer stays pinned. */
+  .is-landing {
+    height: auto;
+    min-height: 100vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
 }

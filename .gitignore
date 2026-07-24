@@ -39,3 +39,15 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# docs ingestion — raw cloned/fetched docs are not committed;
+# data/embeddings/ (the generated index) MAY be committed, see blueprint §11
+/data/raw-docs/*
+!/data/raw-docs/.gitkeep
+
+# stray screenshots from ad-hoc local verification scripts (page.screenshot()
+# with a relative path lands here) — real image assets live under public/ or
+# app/, never at the repo root, so this is safe to blanket-ignore.
+/*.png
+/*.jpg
+/*.jpeg
