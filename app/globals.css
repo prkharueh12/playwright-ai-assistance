@@ -425,13 +425,12 @@
   flex-shrink: 0;
   display: block;
   object-fit: cover;
-  border: 1px solid rgba(217,178,92,0.9);
-  box-shadow: 0 0 0 1px rgba(217,178,92,0.22);
 }
 
 .hero-logo {
   width: 124px; height: 151px;
   border-radius: 18px;
+  border: 1px solid rgba(217,178,92,0.9);
   object-position: top center;
   box-shadow: 0 0 0 1px rgba(217,178,92,0.22), 0 14px 34px rgba(0,0,0,0.4);
   opacity: 0;
@@ -820,7 +819,7 @@
   align-items: center;
   min-height: 52px;
   border-radius: 16px;
-  padding: 2px 40px 2px 18px;
+  padding: 2px 66px 2px 18px;
   transition: background 300ms ease, border-color 300ms ease, box-shadow 200ms ease;
 }
 [data-scene="day"] .connect-key-row:focus-within {
@@ -845,9 +844,14 @@
 [data-scene="night"] .connect-key-row input { color: #f1f5f9; }
 .connect-key-row input::placeholder { color: #9ca3af; }
 
-.connect-key-status {
+.connect-key-icons {
   position: absolute; right: 12px; top: 50%;
   transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.connect-key-status {
   display: flex;
   pointer-events: none;
 }
@@ -870,6 +874,18 @@
   align-items: center;
 }
 .connect-key-status button.invalid:hover { opacity: 0.75; }
+
+.key-toggle-visibility {
+  appearance: none; border: none; background: none; padding: 0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  transition: opacity 150ms ease, color 300ms ease;
+}
+[data-scene="day"] .key-toggle-visibility { color: #64748b; }
+[data-scene="night"] .key-toggle-visibility { color: #94a3b8; }
+.key-toggle-visibility svg { width: 16px; height: 16px; }
+.key-toggle-visibility:hover { opacity: 0.75; }
 
 .connect-error {
   margin: -6px 0 0;
