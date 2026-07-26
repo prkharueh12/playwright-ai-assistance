@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { CircleCheck, CircleX, Loader2, TriangleAlert } from "lucide-react";
+import { CircleCheck, CircleX, Eye, EyeOff, Loader2, TriangleAlert } from "lucide-react";
 import { PROVIDER_LABELS, SUPPORTED_PROVIDERS, type ProviderId } from "@/lib/providers";
 import { useKeyValidation } from "@/lib/use-key-validation";
 import type { StoredCredentials } from "@/lib/credentials";
@@ -35,6 +35,14 @@ export function ConnectPanel({ onConnect }: ConnectPanelProps) {
   }
   const validation = useKeyValidation(provider, apiKey);
   const inputRef = useRef<HTMLInputElement>(null);
+  // Re-masks on every provider switch rather than persisting per-provider —
+  // a revealed key shouldn't stay visible once you've moved on from it.
+  const [showKey, setShowKey] = useState(false);
+
+  function handleProviderChange(id: ProviderId) {
+    setProvider(id);
+    setShowKey(false);
+  }
 
   function handleConnect() {
     const trimmed = apiKey.trim();
@@ -66,7 +74,7 @@ export function ConnectPanel({ onConnect }: ConnectPanelProps) {
               key={id}
               type="button"
               aria-pressed={provider === id}
-              onClick={() => setProvider(id)}
+              onClick={() => handleProviderChange(id)}
             >
               {PROVIDER_LABELS[id]}
             </button>
@@ -76,7 +84,7 @@ export function ConnectPanel({ onConnect }: ConnectPanelProps) {
         <div className="connect-key-row">
           <input
             ref={inputRef}
-            type="password"
+            type={showKey ? "text" : "password"}
             autoComplete="off"
             placeholder={API_KEY_PLACEHOLDERS[provider]}
             value={apiKey}
@@ -86,21 +94,34 @@ export function ConnectPanel({ onConnect }: ConnectPanelProps) {
             }}
             aria-invalid={validation.status === "invalid"}
           />
-          <span className="connect-key-status">
-            {validation.status === "checking" && <Loader2 className="checking animate-spin" />}
-            {validation.status === "valid" && <CircleCheck className="valid" />}
-            {validation.status === "invalid" && (
+          <div className="connect-key-icons">
+            <span className="connect-key-status">
+              {validation.status === "checking" && <Loader2 className="checking animate-spin" />}
+              {validation.status === "valid" && <CircleCheck className="valid" />}
+              {validation.status === "invalid" && (
+                <button
+                  type="button"
+                  className="invalid"
+                  onClick={handleClearInvalidKey}
+                  aria-label="Clear invalid API key"
+                >
+                  <CircleX />
+                </button>
+              )}
+              {validation.status === "unverified" && <TriangleAlert className="unverified" />}
+            </span>
+            {apiKey.length > 0 && (
               <button
                 type="button"
-                className="invalid"
-                onClick={handleClearInvalidKey}
-                aria-label="Clear invalid API key"
+                className="key-toggle-visibility"
+                onClick={() => setShowKey((v) => !v)}
+                aria-label={showKey ? "Hide API key" : "Show API key"}
+                aria-pressed={showKey}
               >
-                <CircleX />
+                {showKey ? <EyeOff /> : <Eye />}
               </button>
             )}
-            {validation.status === "unverified" && <TriangleAlert className="unverified" />}
-          </span>
+          </div>
         </div>
         {validation.status === "invalid" && (
           <p className="connect-error">Invalid api key!</p>

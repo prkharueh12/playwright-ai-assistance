@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { CircleCheck, CircleX, Loader2, TriangleAlert } from "lucide-react";
+import { CircleCheck, CircleX, Eye, EyeOff, Loader2, TriangleAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -99,6 +99,16 @@ function CredentialsForm({
   }
   const validation = useKeyValidation(provider, apiKey);
   const inputRef = useRef<HTMLInputElement>(null);
+  // Re-masks on every provider switch rather than persisting per-provider —
+  // a revealed key shouldn't stay visible once you've moved on from it.
+  // Reopening the modal also resets it for free: this form unmounts and
+  // remounts fresh each time the dialog opens (see ApiKeyModal above).
+  const [showKey, setShowKey] = useState(false);
+
+  function handleProviderChange(id: ProviderId) {
+    setProvider(id);
+    setShowKey(false);
+  }
 
   function handleSave() {
     const trimmed = apiKey.trim();
@@ -126,7 +136,7 @@ function CredentialsForm({
           </label>
           <Select
             value={provider}
-            onValueChange={(value) => setProvider(value as ProviderId)}
+            onValueChange={(value) => handleProviderChange(value as ProviderId)}
           >
             <SelectTrigger id="provider-select" className="w-full">
               {/* Base UI's Select.Value shows the raw value unless mapped —
@@ -154,7 +164,7 @@ function CredentialsForm({
             <Input
               ref={inputRef}
               id="api-key-input"
-              type="password"
+              type={showKey ? "text" : "password"}
               autoComplete="off"
               placeholder={API_KEY_PLACEHOLDERS[provider]}
               value={apiKey}
@@ -163,27 +173,40 @@ function CredentialsForm({
                 if (event.key === "Enter") handleSave();
               }}
               aria-invalid={validation.status === "invalid"}
-              className="pr-9"
+              className="pr-16"
             />
-            <div className="pointer-events-none absolute inset-y-0 right-2.5 flex items-center">
-              {validation.status === "checking" && (
-                <Loader2 className="size-4 animate-spin text-muted-foreground" />
-              )}
-              {validation.status === "valid" && (
-                <CircleCheck className="size-4 text-green-600 dark:text-green-500" />
-              )}
-              {validation.status === "invalid" && (
+            <div className="absolute inset-y-0 right-2.5 flex items-center gap-2">
+              <div className="pointer-events-none flex items-center">
+                {validation.status === "checking" && (
+                  <Loader2 className="size-4 animate-spin text-muted-foreground" />
+                )}
+                {validation.status === "valid" && (
+                  <CircleCheck className="size-4 text-green-600 dark:text-green-500" />
+                )}
+                {validation.status === "invalid" && (
+                  <button
+                    type="button"
+                    onClick={handleClearInvalidKey}
+                    aria-label="Clear invalid API key"
+                    className="pointer-events-auto inline-flex cursor-pointer items-center border-0 bg-transparent p-0 text-destructive hover:opacity-75"
+                  >
+                    <CircleX className="size-4" />
+                  </button>
+                )}
+                {validation.status === "unverified" && (
+                  <TriangleAlert className="size-4 text-amber-500" />
+                )}
+              </div>
+              {apiKey.length > 0 && (
                 <button
                   type="button"
-                  onClick={handleClearInvalidKey}
-                  aria-label="Clear invalid API key"
-                  className="pointer-events-auto inline-flex cursor-pointer items-center border-0 bg-transparent p-0 text-destructive hover:opacity-75"
+                  onClick={() => setShowKey((v) => !v)}
+                  aria-label={showKey ? "Hide API key" : "Show API key"}
+                  aria-pressed={showKey}
+                  className="pointer-events-auto inline-flex cursor-pointer items-center border-0 bg-transparent p-0 text-muted-foreground hover:opacity-75"
                 >
-                  <CircleX className="size-4" />
+                  {showKey ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                 </button>
-              )}
-              {validation.status === "unverified" && (
-                <TriangleAlert className="size-4 text-amber-500" />
               )}
             </div>
           </div>
