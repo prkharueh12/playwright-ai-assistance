@@ -9,7 +9,11 @@ on:
 
 jobs:
   # Runs on both the weekly schedule and manual dispatch. Cheap enough
-  # (single Gemini provider, 3 + 5 cases) to run automatically.
+  # (single Gemini provider) to run automatically. Auto-discovers every
+  # *_promptfooconfig.yaml under prompt-evals/tests/ EXCEPT benchmark/ (that
+  # one lives in its own job below, manual-dispatch-only) — adding a new
+  # suite here, even in a brand new category folder, needs no edit to this
+  # file, as long as it only needs GOOGLE_API_KEY.
   correctness-and-refusal:
     runs-on: ubuntu-latest
     steps:
@@ -22,53 +26,49 @@ jobs:
 
       - run: npm ci
 
-      - name: Run correctness suite
+      - name: Run all suites
+        id: run-suites
         # Informational only — a failing suite here shouldn't fail the
         # build. Thresholds/rubrics aren't calibrated as a hard gate yet.
         continue-on-error: true
         env:
           GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
-        run: npx promptfoo eval -c prompt-evals/tests/correctness/correctness_playwright_qa_promptfooconfig.yaml -o correctness-results.json
+        run: |
+          shopt -s globstar
+          mkdir -p eval-results
+          paths=()
+          for config in prompt-evals/tests/**/*_promptfooconfig.yaml; do
+            case "$config" in
+              */benchmark/*) continue ;;
+            esac
+            name=$(basename "$config" _promptfooconfig.yaml)
+            out="eval-results/${name}.json"
+            echo "Running $config -> $out"
+            npx promptfoo eval -c "$config" -o "$out" || true
+            paths+=("$out")
+          done
+          IFS=,
+          echo "paths=${paths[*]}" >> "$GITHUB_OUTPUT"
 
-      - name: Write job summary (Correctness)
+      # One combined report across every suite that ran — each suite is its
+      # own row rather than its own separate message.
+      - name: Write job summary
         if: always()
         env:
-          SUITE_LABEL: Correctness
-          RESULTS_JSON_PATH: correctness-results.json
+          RESULTS_JSON_PATHS: ${{ steps.run-suites.outputs.paths }}
         run: npm run write:summary
 
-      - name: Notify Slack (Correctness)
+      - name: Notify Slack
         if: always()
         env:
-          SUITE_LABEL: Correctness
-          RESULTS_JSON_PATH: correctness-results.json
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-        run: npm run notify:slack
-
-      - name: Run refusal suite
-        continue-on-error: true
-        env:
-          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
-        run: npx promptfoo eval -c prompt-evals/tests/refusal/refusal_offtopic_adversarial_promptfooconfig.yaml -o refusal-results.json
-
-      - name: Write job summary (Refusal)
-        if: always()
-        env:
-          SUITE_LABEL: Refusal
-          RESULTS_JSON_PATH: refusal-results.json
-        run: npm run write:summary
-
-      - name: Notify Slack (Refusal)
-        if: always()
-        env:
-          SUITE_LABEL: Refusal
-          RESULTS_JSON_PATH: refusal-results.json
+          RESULTS_JSON_PATHS: ${{ steps.run-suites.outputs.paths }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         run: npm run notify:slack
 
   # Manual-trigger-only: 3x the API calls per case (Gemini + OpenAI +
-  # Anthropic), and its thresholds are still unmeasured guesses — not
-  # something to run unattended on a schedule yet.
+  # Anthropic), and thresholds are still unmeasured guesses — not something
+  # to run unattended on a schedule yet. Same auto-discovery, scoped to
+  # tests/benchmark/ only.
   benchmark:
     if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
@@ -82,27 +82,38 @@ jobs:
 
       - run: npm ci
 
-      - name: Run benchmark suite
+      - name: Run all suites
+        id: run-suites
         continue-on-error: true
         env:
           GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        # --no-cache is required: promptfoo's latency assertion errors on
-        # cached results, since there's no wall-clock time to measure.
-        run: npx promptfoo eval -c prompt-evals/tests/benchmark/benchmark_gemini_vs_openai_vs_anthropic_promptfooconfig.yaml --no-cache -o benchmark-results.json
+        run: |
+          shopt -s globstar
+          mkdir -p eval-results
+          paths=()
+          for config in prompt-evals/tests/benchmark/**/*_promptfooconfig.yaml; do
+            name=$(basename "$config" _promptfooconfig.yaml)
+            out="eval-results/${name}.json"
+            echo "Running $config -> $out"
+            # --no-cache is required: promptfoo's latency assertion errors
+            # on cached results, since there's no wall-clock time to measure.
+            npx promptfoo eval -c "$config" --no-cache -o "$out" || true
+            paths+=("$out")
+          done
+          IFS=,
+          echo "paths=${paths[*]}" >> "$GITHUB_OUTPUT"
 
-      - name: Write job summary (Benchmark)
+      - name: Write job summary
         if: always()
         env:
-          SUITE_LABEL: Benchmark
-          RESULTS_JSON_PATH: benchmark-results.json
+          RESULTS_JSON_PATHS: ${{ steps.run-suites.outputs.paths }}
         run: npm run write:summary
 
-      - name: Notify Slack (Benchmark)
+      - name: Notify Slack
         if: always()
         env:
-          SUITE_LABEL: Benchmark
-          RESULTS_JSON_PATH: benchmark-results.json
+          RESULTS_JSON_PATHS: ${{ steps.run-suites.outputs.paths }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         run: npm run notify:slack

@@ -1,4 +1,4 @@
-import { formatDuration, readReport, summarize } from "./parse-report";
+import { formatDuration, summarizeAll, type SuiteSummary } from "./parse-report";
 
 async function postToSlack(webhookUrl: string, blocks: Record<string, unknown>[]): Promise<void> {
   const response = await fetch(webhookUrl, {
@@ -14,6 +14,22 @@ async function postToSlack(webhookUrl: string, blocks: Record<string, unknown>[]
   console.log("Slack notification sent.");
 }
 
+function padEnd(value: string, width: number): string {
+  return value.length >= width ? value : value + " ".repeat(width - value.length);
+}
+
+function buildTable(suites: SuiteSummary[]): string {
+  const labelWidth = Math.max(5, ...suites.map((s) => s.label.length));
+  const header = `${padEnd("Suite", labelWidth)}  Pass  Fail`;
+  const rows = suites.map((s) => {
+    const pass = s.crashed ? "-" : String(s.passed);
+    const fail = s.crashed ? "-" : String(s.failed);
+    const note = s.crashed ? "  (crashed — no results produced)" : "";
+    return `${padEnd(s.label, labelWidth)}  ${padEnd(pass, 4)}  ${padEnd(fail, 4)}${note}`;
+  });
+  return ["```", header, ...rows, "```"].join("\n");
+}
+
 async function main(): Promise<void> {
   const webhookUrl = process.env.SLACK_WEBHOOK_URL;
   if (!webhookUrl) {
@@ -21,9 +37,12 @@ async function main(): Promise<void> {
     return;
   }
 
-  const resultsPath = process.env.RESULTS_JSON_PATH;
-  if (!resultsPath) {
-    throw new Error("RESULTS_JSON_PATH is not set.");
+  const resultsPaths = (process.env.RESULTS_JSON_PATHS ?? "")
+    .split(",")
+    .map((p) => p.trim())
+    .filter(Boolean);
+  if (resultsPaths.length === 0) {
+    throw new Error("RESULTS_JSON_PATHS is not set (comma-separated list of -o result files).");
   }
 
   const runUrl = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`;
@@ -31,49 +50,32 @@ async function main(): Promise<void> {
   const commit = (process.env.GITHUB_SHA ?? "unknown").slice(0, 7);
   const actor = process.env.GITHUB_ACTOR ?? "unknown";
   const event = process.env.GITHUB_EVENT_NAME ?? "unknown";
-  const suiteLabel = process.env.SUITE_LABEL ?? "Prompt Eval";
 
-  const report = readReport(resultsPath);
-  if (!report) {
-    // No report file means the run crashed before promptfoo produced any
-    // results (e.g. a missing secret the built-in provider validates
-    // upfront, or a config error) — still alert, just without stats.
-    await postToSlack(webhookUrl, [
-      {
-        type: "header",
-        text: { type: "plain_text", text: `❌ ${suiteLabel} Failed to Run` },
-      },
-      {
-        type: "section",
-        text: {
-          type: "mrkdwn",
-          text: `No results were produced — the run likely crashed before evaluation completed (e.g. a missing API key or config error).\n*Branch:* ${branch}\n*Commit:* ${commit}\n*Triggered by:* ${actor} (${event})`,
-        },
-      },
-      {
-        type: "context",
-        elements: [{ type: "mrkdwn", text: `<${runUrl}|View full run in GitHub Actions>` }],
-      },
-    ]);
-    return;
-  }
+  const suites = summarizeAll(resultsPaths);
+  const anyFailedOrCrashed = suites.some((s) => s.crashed || s.failed > 0);
+  const totalPassed = suites.reduce((sum, s) => sum + s.passed, 0);
+  const totalFailed = suites.reduce((sum, s) => sum + s.failed, 0);
+  const totalDurationMs = suites.reduce((sum, s) => sum + (s.durationMs ?? 0), 0);
 
-  const { total, passed, failed, failedDescriptions, durationMs } = summarize(report);
-  const resultEmoji = failed > 0 ? "❌" : "✅";
-  const resultText = failed > 0 ? "Failed" : "Passed";
+  const resultEmoji = anyFailedOrCrashed ? "❌" : "✅";
+  const resultText = anyFailedOrCrashed ? "Some Suites Failed" : "All Suites Passed";
 
   const blocks: Record<string, unknown>[] = [
     {
       type: "header",
-      text: { type: "plain_text", text: `${resultEmoji} ${suiteLabel} ${resultText}` },
+      text: { type: "plain_text", text: `${resultEmoji} ${resultText}` },
     },
     {
       type: "section",
+      text: { type: "mrkdwn", text: buildTable(suites) },
+    },
+    {
+      type: "section",
+      text: { type: "mrkdwn", text: "*Summary:*" },
       fields: [
-        { type: "mrkdwn", text: `*Total:*\n${total}` },
-        { type: "mrkdwn", text: `*Passed:*\n${passed}` },
-        { type: "mrkdwn", text: `*Failed:*\n${failed}` },
-        { type: "mrkdwn", text: `*Duration:*\n${formatDuration(durationMs)}` },
+        { type: "mrkdwn", text: `*Total Passed:*\n${totalPassed}` },
+        { type: "mrkdwn", text: `*Total Failed:*\n${totalFailed}` },
+        { type: "mrkdwn", text: `*Duration:*\n${formatDuration(totalDurationMs)}` },
         { type: "mrkdwn", text: `*Branch:*\n${branch}` },
         { type: "mrkdwn", text: `*Commit:*\n${commit}` },
         { type: "mrkdwn", text: `*Triggered by:*\n${actor} (${event})` },
@@ -81,14 +83,16 @@ async function main(): Promise<void> {
     },
   ];
 
-  if (failedDescriptions.length > 0) {
-    blocks.push({
-      type: "section",
-      text: {
-        type: "mrkdwn",
-        text: `*Failed tests:*\n${failedDescriptions.map((title) => `• ${title}`).join("\n")}`,
-      },
-    });
+  for (const suite of suites) {
+    if (suite.failedDescriptions.length > 0) {
+      blocks.push({
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: `*${suite.label} — failed tests:*\n${suite.failedDescriptions.map((title) => `• ${title}`).join("\n")}`,
+        },
+      });
+    }
   }
 
   blocks.push({
