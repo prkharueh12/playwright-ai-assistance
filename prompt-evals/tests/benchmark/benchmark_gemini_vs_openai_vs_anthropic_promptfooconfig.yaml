@@ -1,0 +1,93 @@
+# yaml-language-server: $schema=https://promptfoo.dev/config-schema.json
+#
+# Efficiency benchmark — cost and latency per query, across three
+# providers' cheapest available tier, all running the real RAG pipeline.
+# Not a correctness check: this only measures whether each provider stays
+# within a cost/time budget, regardless of answer quality.
+#
+# Deliberately NOT the app's configured production models (see
+# lib/providers.ts DEFAULT_MODELS: openai=gpt-4.1-mini,
+# anthropic=claude-sonnet-4-6, google=gemini-3.1-flash-lite). This compares
+# each provider's cheapest tier instead, chosen specifically because
+# promptfoo has real, built-in pricing for all three below — no custom
+# provider classes, no pricing.ts guesses needed. (gemini-3.1-flash-lite has
+# no built-in pricing entry — confirmed against the installed promptfoo
+# source — which is the whole reason this suite uses 3.5-flash-lite
+# instead. gemini-rag-provider.ts, used by the correctness/refusal suites,
+# is untouched and still tests the real production model.)
+#
+# THRESHOLDS ARE STARTING GUESSES, not measured baselines — this suite has
+# never been run for real yet. Recalibrate after the first run.
+#
+# assert-set threshold semantics (verified against the installed promptfoo
+# source): the sub-assertions' scores are averaged (each weighted 1 by
+# default), and `threshold` on the assert-set is compared against that
+# average — it is NOT "all must pass" unless you leave `threshold` unset.
+#   - No threshold on the assert-set (used below) → AND: cost AND latency
+#     must both individually pass.
+#   - threshold: 0.5 with these same two checks → OR: only one of the two
+#     needs to pass.
+
+prompts:
+  - file://../../prompts/build_rag_prompt.ts
+
+providers:
+  - id: google:gemini-3.5-flash-lite
+  - id: openai:gpt-4.1-nano
+  - id: anthropic:messages:claude-haiku-4-5-20251001
+
+tests:
+  - description: "On-topic: element screenshot"
+    vars:
+      query: "How do I take a screenshot of a specific element in Playwright?"
+    assert:
+      - type: assert-set
+        assert:
+          - type: cost
+            threshold: 0.005
+          - type: latency
+            threshold: 8000
+
+  - description: "On-topic: click API comparison"
+    vars:
+      query: "What's the difference between page.click() and page.locator().click() in Playwright?"
+    assert:
+      - type: assert-set
+        assert:
+          - type: cost
+            threshold: 0.005
+          - type: latency
+            threshold: 8000
+
+  - description: "On-topic: headed mode for debugging"
+    vars:
+      query: "How do I run my Playwright tests in headed mode for debugging?"
+    assert:
+      - type: assert-set
+        assert:
+          - type: cost
+            threshold: 0.005
+          - type: latency
+            threshold: 8000
+
+  - description: "On-topic: network mocking"
+    vars:
+      query: "How do I mock network requests in Playwright?"
+    assert:
+      - type: assert-set
+        assert:
+          - type: cost
+            threshold: 0.005
+          - type: latency
+            threshold: 8000
+
+  - description: "Off-topic control: no retrieval, cheapest/fastest path"
+    vars:
+      query: "What's the weather like today?"
+    assert:
+      - type: assert-set
+        assert:
+          - type: cost
+            threshold: 0.002
+          - type: latency
+            threshold: 5000

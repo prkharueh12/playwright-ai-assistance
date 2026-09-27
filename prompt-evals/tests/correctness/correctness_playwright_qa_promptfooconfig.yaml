@@ -1,0 +1,72 @@
+# yaml-language-server: $schema=https://promptfoo.dev/config-schema.json
+description: "Answer correctness — known-good Playwright Q&A checked against a reference"
+
+prompts:
+  - "{{query}}"
+
+providers:
+  - id: file://../../providers/gemini-rag-provider.ts
+    label: gemini-rag-provider
+
+defaultTest:
+  options:
+    provider: google:gemini-3.1-flash-lite
+    # Domain-specific grading philosophy layered on top of each case's own
+    # `value` rubric below (the {{ rubric }} var in this file).
+    rubricPrompt: file://../../prompts/correctness_grading_rules.txt
+
+# Handwritten — each case needs a known-good reference, so this isn't
+# auto-generated. Per the eval skill's rule, the reference material is
+# inlined directly in each rubric (the grader only sees vars in the rubric
+# text itself, never other test fields).
+tests:
+  - description: "Locator API — selecting a button by its accessible role"
+    vars:
+      query: "How do I select a button with the text 'Submit' using Playwright's recommended locator API?"
+    assert:
+      - type: llm-rubric
+        value: |
+          The user is asking how to select a button by its text using
+          Playwright's recommended approach. Per Playwright's documented
+          best practice, `getByRole` (e.g. `page.getByRole('button', { name:
+          'Submit' })`) is the recommended role-based locator for this case.
+
+          PASS: The answer recommends getByRole (or an equivalent role-based
+          locator) as the primary approach.
+          FAIL: The answer recommends a raw CSS/XPath selector as the
+          primary approach, or confuses the locator with an assertion
+          method.
+
+  - description: "Auto-waiting after a navigating click"
+    vars:
+      query: "After clicking a link that navigates to a new page, do I need to manually wait for navigation to complete before asserting on the new page in Playwright?"
+    assert:
+      - type: llm-rubric
+        value: |
+          The user is asking whether they need to manually wait for
+          navigation before asserting on a new page. Per Playwright's
+          auto-waiting behavior, locator actions and web-first assertions
+          already wait for the right state — a manual wait is only needed
+          for edge cases like popups or non-standard navigation.
+
+          PASS: The answer states that Playwright auto-waits and a manual
+          wait usually isn't required for the common case.
+          FAIL: The answer says a manual wait (e.g. waitForNavigation) is
+          required by default, or fails to mention auto-waiting at all.
+
+  - description: "Parallelism model for Playwright Test"
+    vars:
+      query: "Does Playwright Test run test files in parallel by default?"
+    assert:
+      - type: llm-rubric
+        value: |
+          The user is asking whether Playwright Test runs test files in
+          parallel by default. Per Playwright's default configuration, test
+          FILES run in parallel across multiple workers, but tests within a
+          single file run sequentially in the same worker unless
+          test.describe.configure({ mode: 'parallel' }) is used.
+
+          PASS: The answer states parallelism is per-file by default, with
+          tests within a file running sequentially.
+          FAIL: The answer says parallelism is per-test within a file, says
+          nothing runs in parallel by default, or reverses this behavior.
