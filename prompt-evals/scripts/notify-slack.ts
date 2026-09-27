@@ -58,7 +58,7 @@ async function main(): Promise<void> {
   const totalDurationMs = suites.reduce((sum, s) => sum + (s.durationMs ?? 0), 0);
 
   const resultEmoji = anyFailedOrCrashed ? "❌" : "✅";
-  const resultText = anyFailedOrCrashed ? "Some Suites Failed" : "All Suites Passed";
+  const resultText = anyFailedOrCrashed ? "Suites Failed" : "All Suites Passed";
 
   const blocks: Record<string, unknown>[] = [
     {
@@ -95,9 +95,14 @@ async function main(): Promise<void> {
     }
   }
 
+  const artifactUrl = process.env.ARTIFACT_URL;
+  const linksText = artifactUrl
+    ? `<${runUrl}|View full run in GitHub Actions> · <${artifactUrl}|Download full interactive reports>`
+    : `<${runUrl}|View full run in GitHub Actions> — full interactive per-suite reports are downloadable from that run's Artifacts section`;
+
   blocks.push({
     type: "context",
-    elements: [{ type: "mrkdwn", text: `<${runUrl}|View full run in GitHub Actions>` }],
+    elements: [{ type: "mrkdwn", text: linksText }],
   });
 
   await postToSlack(webhookUrl, blocks);
