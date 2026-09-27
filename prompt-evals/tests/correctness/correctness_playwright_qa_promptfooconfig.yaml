@@ -54,19 +54,24 @@ tests:
           FAIL: The answer says a manual wait (e.g. waitForNavigation) is
           required by default, or fails to mention auto-waiting at all.
 
-  - description: "Parallelism model for Playwright Test"
+  - description: "Anti-pattern: waitForTimeout for element visibility"
     vars:
-      query: "Does Playwright Test run test files in parallel by default?"
+      query: "Should I use page.waitForTimeout(5000) to wait for an element to become visible before interacting with it in Playwright?"
     assert:
       - type: llm-rubric
         value: |
-          The user is asking whether Playwright Test runs test files in
-          parallel by default. Per Playwright's default configuration, test
-          FILES run in parallel across multiple workers, but tests within a
-          single file run sequentially in the same worker unless
-          test.describe.configure({ mode: 'parallel' }) is used.
+          The user is asking whether a hardcoded timeout is the right way
+          to wait for an element to become visible. Per Playwright's own
+          documentation, `page.waitForTimeout()` is explicitly discouraged
+          for this — it's an arbitrary, flaky hard wait. The recommended
+          approach is to rely on auto-waiting locators (e.g.
+          `page.getByRole(...).click()`) or an explicit `waitFor()`/
+          web-first assertion, which wait for the actual condition instead
+          of a fixed duration.
 
-          PASS: The answer states parallelism is per-file by default, with
-          tests within a file running sequentially.
-          FAIL: The answer says parallelism is per-test within a file, says
-          nothing runs in parallel by default, or reverses this behavior.
+          PASS: The answer advises against using waitForTimeout for this
+          purpose and recommends auto-waiting locators or an explicit wait
+          condition instead.
+          FAIL: The answer recommends waitForTimeout as a good or
+          acceptable solution here, or doesn't mention its drawbacks
+          (flakiness, arbitrary duration).
