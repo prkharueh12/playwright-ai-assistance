@@ -1,0 +1,119 @@
+name: Prompt evals
+
+on:
+  schedule:
+    # Weekly, Monday 07:00 UTC — offset an hour from refresh-docs.yml's
+    # 06:00 slot so the two don't contend for a runner at the same minute.
+    - cron: "0 7 * * 1"
+  workflow_dispatch: {}
+
+jobs:
+  # Runs on both the weekly schedule and manual dispatch. Cheap enough
+  # (single Gemini provider) to run automatically. Auto-discovers every
+  # *_promptfooconfig.yaml under prompt-evals/tests/ EXCEPT benchmark/ (that
+  # one lives in its own job below, manual-dispatch-only) — adding a new
+  # suite here, even in a brand new category folder, needs no edit to this
+  # file, as long as it only needs GOOGLE_API_KEY.
+  correctness-and-refusal:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Run all suites
+        id: run-suites
+        # Informational only — a failing suite here shouldn't fail the
+        # build. Thresholds/rubrics aren't calibrated as a hard gate yet.
+        continue-on-error: true
+        env:
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+        run: |
+          shopt -s globstar
+          mkdir -p eval-results
+          paths=()
+          for config in prompt-evals/tests/**/*_promptfooconfig.yaml; do
+            case "$config" in
+              */benchmark/*) continue ;;
+            esac
+            name=$(basename "$config" _promptfooconfig.yaml)
+            out="eval-results/${name}.json"
+            echo "Running $config -> $out"
+            npx promptfoo eval -c "$config" -o "$out" || true
+            paths+=("$out")
+          done
+          IFS=,
+          echo "paths=${paths[*]}" >> "$GITHUB_OUTPUT"
+
+      # One combined report across every suite that ran — each suite is its
+      # own row rather than its own separate message.
+      - name: Write job summary
+        if: always()
+        env:
+          RESULTS_JSON_PATHS: ${{ steps.run-suites.outputs.paths }}
+        run: npm run write:summary
+
+      - name: Notify Slack
+        if: always()
+        env:
+          RESULTS_JSON_PATHS: ${{ steps.run-suites.outputs.paths }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: npm run notify:slack
+
+  # Manual-trigger-only: 3x the API calls per case (Gemini + OpenAI +
+  # Anthropic), and thresholds are still unmeasured guesses — not something
+  # to run unattended on a schedule yet. Same auto-discovery, scoped to
+  # tests/benchmark/ only.
+  benchmark:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Run all suites
+        id: run-suites
+        continue-on-error: true
+        env:
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          shopt -s globstar
+          mkdir -p eval-results
+          paths=()
+          for config in prompt-evals/tests/benchmark/**/*_promptfooconfig.yaml; do
+            name=$(basename "$config" _promptfooconfig.yaml)
+            out="eval-results/${name}.json"
+            echo "Running $config -> $out"
+            # --no-cache is required: promptfoo's latency assertion errors
+            # on cached results, since there's no wall-clock time to measure.
+            npx promptfoo eval -c "$config" --no-cache -o "$out" || true
+            paths+=("$out")
+          done
+          IFS=,
+          echo "paths=${paths[*]}" >> "$GITHUB_OUTPUT"
+
+      - name: Write job summary
+        if: always()
+        env:
+          RESULTS_JSON_PATHS: ${{ steps.run-suites.outputs.paths }}
+        run: npm run write:summary
+
+      - name: Notify Slack
+        if: always()
+        env:
+          RESULTS_JSON_PATHS: ${{ steps.run-suites.outputs.paths }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: npm run notify:slack

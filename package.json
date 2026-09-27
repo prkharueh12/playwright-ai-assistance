@@ -15,7 +15,9 @@
     "eval:refusal_offtopic_adversarial": "dotenv -e .env -- promptfoo eval -c prompt-evals/tests/refusal/refusal_offtopic_adversarial_promptfooconfig.yaml",
     "eval:benchmark_provider_comparison": "dotenv -e .env -- promptfoo eval -c prompt-evals/tests/benchmark/benchmark_gemini_vs_openai_vs_anthropic_promptfooconfig.yaml --no-cache",
     "eval:all": "npm run eval:correctness_playwright_qa && npm run eval:refusal_offtopic_adversarial && npm run eval:benchmark_provider_comparison",
-    "eval:view": "promptfoo view"
+    "eval:view": "promptfoo view",
+    "notify:slack": "tsx prompt-evals/scripts/notify-slack.ts",
+    "write:summary": "tsx prompt-evals/scripts/write-summary.ts"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^4.0.15",

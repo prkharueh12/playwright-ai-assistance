@@ -51,3 +51,8 @@ next-env.d.ts
 /*.png
 /*.jpg
 /*.jpeg
+
+# prompt-evals: local/CI promptfoo -o output files (e.g.
+# correctness-results.json, refusal-results.json, benchmark-results.json)
+# are run artifacts, not source — never committed.
+/*-results.json
