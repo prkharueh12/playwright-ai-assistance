@@ -5,7 +5,12 @@ on:
     # Weekly, Monday 07:00 UTC — offset an hour from refresh-docs.yml's
     # 06:00 slot so the two don't contend for a runner at the same minute.
     - cron: "0 7 * * 1"
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      run_benchmark:
+        description: "Also run the benchmark suite (3x the API calls per case, across Gemini/OpenAI/Anthropic)"
+        type: boolean
+        default: false
 
 jobs:
   # Runs on both the weekly schedule and manual dispatch. Cheap enough
@@ -65,12 +70,14 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         run: npm run notify:slack
 
-  # Manual-trigger-only: 3x the API calls per case (Gemini + OpenAI +
-  # Anthropic), and thresholds are still unmeasured guesses — not something
-  # to run unattended on a schedule yet. Same auto-discovery, scoped to
-  # tests/benchmark/ only.
+  # Manual-trigger-only, AND opt-in even then: 3x the API calls per case
+  # (Gemini + OpenAI + Anthropic), and thresholds are still unmeasured
+  # guesses — not something to run by default just because someone clicked
+  # "Run workflow". The run_benchmark checkbox defaults to unchecked, so a
+  # plain manual dispatch skips this job. Same auto-discovery as the other
+  # job, scoped to tests/benchmark/ only.
   benchmark:
-    if: github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'workflow_dispatch' && inputs.run_benchmark == true
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
