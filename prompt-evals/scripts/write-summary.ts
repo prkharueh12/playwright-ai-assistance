@@ -57,6 +57,11 @@ function main(): void {
     }
   }
 
+  const artifactUrl = process.env.ARTIFACT_URL;
+  markdown += artifactUrl
+    ? `\n[Download full interactive reports](${artifactUrl}) (prompts, responses, per-assertion detail).\n`
+    : "\n_Full interactive per-suite reports (prompts, responses, per-assertion detail) are attached to this run as a downloadable Artifact, further down this page._\n";
+
   appendFileSync(summaryPath, markdown);
   console.log("Job summary written.");
 }

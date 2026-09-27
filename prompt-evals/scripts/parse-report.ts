@@ -1,7 +1,11 @@
 import { readFileSync } from "node:fs";
 
 export interface PromptfooResultEntry {
-  description?: string;
+  // The test case's own `description:` from the YAML lives under
+  // testCase.description, not directly on the result entry — confirmed
+  // against real output (a top-level `description` field doesn't exist
+  // here at all).
+  testCase?: { description?: string };
   success: boolean;
 }
 
@@ -48,7 +52,7 @@ export function summarize(report: PromptfooReport): ParsedSummary {
   const total = passed + failed;
   const failedDescriptions = entries
     .filter((entry) => !entry.success)
-    .map((entry) => entry.description ?? "Untitled test case");
+    .map((entry) => entry.testCase?.description ?? "Untitled test case");
 
   return {
     description: report.config?.description,

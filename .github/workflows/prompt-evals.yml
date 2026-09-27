@@ -48,12 +48,28 @@ jobs:
             esac
             name=$(basename "$config" _promptfooconfig.yaml)
             out="eval-results/${name}.json"
+            out_html="eval-results/${name}.html"
             echo "Running $config -> $out"
-            npx promptfoo eval -c "$config" -o "$out" || true
+            npx promptfoo eval -c "$config" -o "$out" "$out_html" || true
             paths+=("$out")
           done
           IFS=,
           echo "paths=${paths[*]}" >> "$GITHUB_OUTPUT"
+
+      # Interactive per-suite HTML reports (full prompt/response/assertion
+      # detail) — kept as a private GitHub Actions artifact rather than
+      # promptfoo's own hosted "share" feature, which would upload eval
+      # data to a third-party service. Runs before the report steps below
+      # so its artifact-url output is available to pass into them.
+      - name: Upload eval reports
+        id: upload-reports
+        if: always()
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: eval-reports-correctness-and-refusal
+          path: eval-results/*.html
+          retention-days: 14
 
       # One combined report across every suite that ran — each suite is its
       # own row rather than its own separate message.
@@ -61,12 +77,14 @@ jobs:
         if: always()
         env:
           RESULTS_JSON_PATHS: ${{ steps.run-suites.outputs.paths }}
+          ARTIFACT_URL: ${{ steps.upload-reports.outputs.artifact-url }}
         run: npm run write:summary
 
       - name: Notify Slack
         if: always()
         env:
           RESULTS_JSON_PATHS: ${{ steps.run-suites.outputs.paths }}
+          ARTIFACT_URL: ${{ steps.upload-reports.outputs.artifact-url }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         run: npm run notify:slack
 
@@ -103,24 +121,37 @@ jobs:
           for config in prompt-evals/tests/benchmark/**/*_promptfooconfig.yaml; do
             name=$(basename "$config" _promptfooconfig.yaml)
             out="eval-results/${name}.json"
+            out_html="eval-results/${name}.html"
             echo "Running $config -> $out"
             # --no-cache is required: promptfoo's latency assertion errors
             # on cached results, since there's no wall-clock time to measure.
-            npx promptfoo eval -c "$config" --no-cache -o "$out" || true
+            npx promptfoo eval -c "$config" --no-cache -o "$out" "$out_html" || true
             paths+=("$out")
           done
           IFS=,
           echo "paths=${paths[*]}" >> "$GITHUB_OUTPUT"
 
+      - name: Upload eval reports
+        id: upload-reports
+        if: always()
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: eval-reports-benchmark
+          path: eval-results/*.html
+          retention-days: 14
+
       - name: Write job summary
         if: always()
         env:
           RESULTS_JSON_PATHS: ${{ steps.run-suites.outputs.paths }}
+          ARTIFACT_URL: ${{ steps.upload-reports.outputs.artifact-url }}
         run: npm run write:summary
 
       - name: Notify Slack
         if: always()
         env:
           RESULTS_JSON_PATHS: ${{ steps.run-suites.outputs.paths }}
+          ARTIFACT_URL: ${{ steps.upload-reports.outputs.artifact-url }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         run: npm run notify:slack
