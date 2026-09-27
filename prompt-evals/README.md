@@ -31,14 +31,21 @@ prompt-evals/
 │   ├── correctness_grading_rules.txt                                  # grading-rubric prompt for the correctness suite
 │   ├── refusal_grading_rules.txt                                      # grading-rubric prompt for the refusal suite's one llm-rubric case
 │   └── build_rag_prompt.ts                                            # shared RAG-context prompt function for the benchmark suite (all 3 providers)
-└── tests/
-    ├── correctness/
-    │   └── correctness_playwright_qa_promptfooconfig.yaml             # self-contained config + inline, handwritten cases
-    ├── refusal/
-    │   └── refusal_offtopic_adversarial_promptfooconfig.yaml          # self-contained config + inline, handwritten cases
-    └── benchmark/
-        └── benchmark_gemini_vs_openai_vs_anthropic_promptfooconfig.yaml  # cost/latency only, no correctness grading; 3 built-in providers
+├── tests/
+│   ├── correctness/
+│   │   └── correctness_playwright_qa_promptfooconfig.yaml         # self-contained config + inline, handwritten cases
+│   ├── refusal/
+│   │   └── refusal_offtopic_adversarial_promptfooconfig.yaml      # self-contained config + inline, handwritten cases
+│   └── benchmark/
+│       └── benchmark_gemini_vs_openai_vs_anthropic_promptfooconfig.yaml  # cost/latency only, no correctness grading; 3 built-in providers
+└── scripts/
+    ├── parse-report.ts        # shared: reads a promptfoo -o JSON file, computes pass/fail/duration
+    ├── notify-slack.ts        # posts a pass/fail summary to a Slack Incoming Webhook (CI only)
+    └── write-summary.ts       # writes the same summary to the GitHub Actions job summary (CI only)
 ```
+
+CI wiring lives in [../.github/workflows/prompt-evals.yml](../.github/workflows/prompt-evals.yml) —
+see the **CI** section below.
 
 Each `*_promptfooconfig.yaml` is fully self-contained — `providers`,
 `defaultTest`, and `tests` all live in the one file, no separate cases
@@ -132,4 +139,34 @@ and browsable via `eval:view`, or dumped to a file directly with
 - All model-graded assertions (correctness/refusal only) pin the grading
   provider explicitly (`google:gemini-3.1-flash-lite`) rather than relying
   on promptfoo's default grader.
-- Not wired into CI yet — these make real API calls per run.
+
+## CI
+
+[../.github/workflows/prompt-evals.yml](../.github/workflows/prompt-evals.yml)
+runs weekly (Monday 07:00 UTC, offset an hour from `refresh-docs.yml`'s
+slot) and on manual dispatch:
+
+- **`correctness-and-refusal`** job runs on both the schedule and manual
+  dispatch — cheap enough (single Gemini provider) to run unattended.
+- **`benchmark`** job only runs on manual dispatch (`if: github.event_name
+  == 'workflow_dispatch'`) — 3x the API calls per case, and its thresholds
+  are still unmeasured guesses, so it's not something to run unattended yet.
+- **Nothing fails the build.** Each `promptfoo eval` step has
+  `continue-on-error: true` — a failing suite reports, it doesn't block. This
+  can be promoted to a hard gate later once thresholds are calibrated
+  against real data.
+- **Two outputs per suite, both `if: always()`:** a GitHub Actions job
+  summary (`write:summary`) and a Slack message (`notify:slack`), each
+  reading the same `-o <suite>-results.json` file via the shared
+  `parse-report.ts`. If a run crashes before producing any results (e.g. a
+  missing secret a built-in provider validates upfront), both still post —
+  a "failed to run" message instead of stats.
+
+**Required GitHub secrets** (Settings → Secrets and variables → Actions),
+matching the local `.env` names exactly: `GOOGLE_API_KEY`,
+`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `SLACK_WEBHOOK_URL` (a Slack
+Incoming Webhook URL — Features → Incoming Webhooks on your Slack app, not
+the Bot/App-Level tokens from Slack's newer app-development flow, which
+are for a different kind of integration entirely).
+
+`*-results.json` files are gitignored — they're run artifacts, not source.

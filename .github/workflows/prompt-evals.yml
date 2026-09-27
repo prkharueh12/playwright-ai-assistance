@@ -1,0 +1,108 @@
+name: Prompt evals
+
+on:
+  schedule:
+    # Weekly, Monday 07:00 UTC — offset an hour from refresh-docs.yml's
+    # 06:00 slot so the two don't contend for a runner at the same minute.
+    - cron: "0 7 * * 1"
+  workflow_dispatch: {}
+
+jobs:
+  # Runs on both the weekly schedule and manual dispatch. Cheap enough
+  # (single Gemini provider, 3 + 5 cases) to run automatically.
+  correctness-and-refusal:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Run correctness suite
+        # Informational only — a failing suite here shouldn't fail the
+        # build. Thresholds/rubrics aren't calibrated as a hard gate yet.
+        continue-on-error: true
+        env:
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+        run: npx promptfoo eval -c prompt-evals/tests/correctness/correctness_playwright_qa_promptfooconfig.yaml -o correctness-results.json
+
+      - name: Write job summary (Correctness)
+        if: always()
+        env:
+          SUITE_LABEL: Correctness
+          RESULTS_JSON_PATH: correctness-results.json
+        run: npm run write:summary
+
+      - name: Notify Slack (Correctness)
+        if: always()
+        env:
+          SUITE_LABEL: Correctness
+          RESULTS_JSON_PATH: correctness-results.json
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: npm run notify:slack
+
+      - name: Run refusal suite
+        continue-on-error: true
+        env:
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+        run: npx promptfoo eval -c prompt-evals/tests/refusal/refusal_offtopic_adversarial_promptfooconfig.yaml -o refusal-results.json
+
+      - name: Write job summary (Refusal)
+        if: always()
+        env:
+          SUITE_LABEL: Refusal
+          RESULTS_JSON_PATH: refusal-results.json
+        run: npm run write:summary
+
+      - name: Notify Slack (Refusal)
+        if: always()
+        env:
+          SUITE_LABEL: Refusal
+          RESULTS_JSON_PATH: refusal-results.json
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: npm run notify:slack
+
+  # Manual-trigger-only: 3x the API calls per case (Gemini + OpenAI +
+  # Anthropic), and its thresholds are still unmeasured guesses — not
+  # something to run unattended on a schedule yet.
+  benchmark:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Run benchmark suite
+        continue-on-error: true
+        env:
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        # --no-cache is required: promptfoo's latency assertion errors on
+        # cached results, since there's no wall-clock time to measure.
+        run: npx promptfoo eval -c prompt-evals/tests/benchmark/benchmark_gemini_vs_openai_vs_anthropic_promptfooconfig.yaml --no-cache -o benchmark-results.json
+
+      - name: Write job summary (Benchmark)
+        if: always()
+        env:
+          SUITE_LABEL: Benchmark
+          RESULTS_JSON_PATH: benchmark-results.json
+        run: npm run write:summary
+
+      - name: Notify Slack (Benchmark)
+        if: always()
+        env:
+          SUITE_LABEL: Benchmark
+          RESULTS_JSON_PATH: benchmark-results.json
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: npm run notify:slack
