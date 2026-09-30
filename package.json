@@ -16,6 +16,7 @@
     "eval:benchmark_provider_comparison": "dotenv -e .env -- promptfoo eval -c prompt-evals/tests/benchmark/benchmark_gemini_vs_openai_vs_anthropic_promptfooconfig.yaml --no-cache",
     "eval:all": "npm run eval:correctness_playwright_qa && npm run eval:refusal_offtopic_adversarial && npm run eval:benchmark_provider_comparison",
     "eval:view": "promptfoo view",
+    "redteam:jailbreak_basic": "dotenv -e .env -- promptfoo redteam run -c prompt-evals/red-teaming/jailbreakBasic/promptfooconfig.yaml --delay 5000",
     "notify:slack": "tsx prompt-evals/scripts/notify-slack.ts",
     "write:summary": "tsx prompt-evals/scripts/write-summary.ts"
   },

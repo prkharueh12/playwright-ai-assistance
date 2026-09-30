@@ -140,6 +140,65 @@ and browsable via `eval:view`, or dumped to a file directly with
   provider explicitly (`google:gemini-3.1-flash-lite`) rather than relying
   on promptfoo's default grader.
 
+## Red-teaming
+
+`red-teaming/` holds promptfoo `redteam` suites — adversarial security
+testing (prompt injection, hallucination, overreliance, excessive-agency,
+etc.), distinct from the correctness/refusal/benchmark suites above. Each
+subfolder is a self-contained `promptfooconfig.yaml`, same one-folder-per-suite
+convention as `tests/`:
+
+```
+red-teaming/
+└── jailbreakBasic/
+    ├── promptfooconfig.yaml   # source: target, purpose, plugins, strategies, provider
+    └── redteam.yaml           # generated attack cases (gitignored, regenerated every run)
+```
+
+- **Target:** the same real `gemini-rag-provider.ts` used by correctness/refusal
+  — this tests the actual production RAG pipeline, not a mock.
+- **Provider:** `redteam.provider` points at a dedicated custom provider,
+  [providers/gemini-redteam-provider.ts](providers/gemini-redteam-provider.ts),
+  instead of promptfoo's built-in `google:gemini-3.1-flash-lite` spec. The
+  built-in spec silently generated 0 usable test cases for the
+  `overreliance` plugin specifically (confirmed via a real run + a raw-fetch
+  diagnostic that succeeded with the identical model/prompt where the
+  built-in provider failed) — see that file's header comment. Setting
+  `redteam.provider` explicitly also means it's not using promptfoo's
+  OpenAI-key-present default grader; both attack generation and grading run
+  on Gemini (free tier) instead.
+- **Rate limits are a real, load-bearing constraint, not just a config
+  choice.** Google's Gemini free tier caps out at 15 requests/minute,
+  shared between the target and the redteam provider on the same key.
+  `numTests: 3`, `maxConcurrency: 1`, and `--delay 5000` (in the npm script)
+  together keep every run under that ceiling — confirmed necessary by a real
+  run that hit `Quota exceeded ... limit: 15` at the wizard's original
+  defaults (`numTests: 5`, `maxConcurrency: 4`). Raising `maxConcurrency`
+  without removing `--delay` is a no-op — promptfoo forces concurrency to 1
+  whenever a delay is set.
+- **`jailbreak:meta` was deliberately dropped** from `strategies:` — it's a
+  live/iterative strategy hard-wired to promptfoo's remote cloud service
+  with no local fallback, which we avoid for the same privacy reason we skip
+  promptfoo's native "share" feature.
+- **`redteam.purpose` does not support `file://` references** — confirmed by
+  a real test where it silently treated the path string itself as the
+  purpose text instead of loading the file or erroring. Keep it inline.
+
+**Running:**
+```bash
+npm run redteam:jailbreak_basic   # generate + evaluate against the real target
+npx promptfoo redteam report      # browser UI: severity per plugin, pass/fail, prompts/responses
+```
+`redteam.yaml` is a generated artifact (gitignored) — deleting it is safe,
+the next run regenerates it.
+
+**Not yet wired into CI** — red-teaming is slower and more rate-limit-fragile
+than the other suites, and its output (severity-ranked findings) is closer
+to a security review than a binary pass/fail, so it doesn't fit the same
+scheduled-run model. The intended cadence is closer to "before a big
+release" or "whenever the attack surface changes" (new system prompt, new
+capability, model upgrade) than a weekly schedule.
+
 ## CI
 
 [../.github/workflows/prompt-evals.yml](../.github/workflows/prompt-evals.yml)
