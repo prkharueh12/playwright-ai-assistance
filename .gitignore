@@ -56,3 +56,7 @@ next-env.d.ts
 # correctness-results.json, refusal-results.json, benchmark-results.json)
 # are run artifacts, not source — never committed.
 /*-results.json
+
+# red-teaming: generated attack-case files (phase 1 output of `promptfoo
+# redteam run`/`generate`) — regenerated fresh every run, not source.
+prompt-evals/red-teaming/**/redteam.yaml
