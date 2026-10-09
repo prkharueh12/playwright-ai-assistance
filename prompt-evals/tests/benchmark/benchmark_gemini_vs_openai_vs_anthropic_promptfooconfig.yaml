@@ -27,6 +27,7 @@
 #     must both individually pass.
 #   - threshold: 0.5 with these same two checks → OR: only one of the two
 #     needs to pass.
+description: "Benchmark on 3 models: cost/latency"
 
 prompts:
   - file://../../prompts/build_rag_prompt.ts

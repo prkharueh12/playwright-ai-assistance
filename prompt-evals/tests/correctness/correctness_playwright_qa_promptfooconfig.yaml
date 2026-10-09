@@ -10,7 +10,7 @@ providers:
 
 defaultTest:
   options:
-    provider: google:gemini-3.1-flash-lite
+    provider: google:gemini-3.5-flash-lite
     # Domain-specific grading philosophy layered on top of each case's own
     # `value` rubric below (the {{ rubric }} var in this file).
     rubricPrompt: file://../../prompts/correctness_grading_rules.txt
