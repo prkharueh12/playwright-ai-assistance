@@ -18,6 +18,17 @@ export interface RetrievedChunk {
 }
 
 /**
+ * Wraps user-supplied text in <user_question> tags so the model can tell
+ * untrusted input apart from real instructions (system.md rule 8). Any
+ * tags the user typed themselves are stripped first so they can't close the
+ * wrapper early and smuggle text outside it.
+ */
+export function wrapUserQuery(text: string): string {
+  const sanitized = text.replace(/<\/?\s*user_question\s*>/gi, "");
+  return `<user_question>\n${sanitized}\n</user_question>`;
+}
+
+/**
  * Builds the system prompt. `chunks` is empty until Phase 4 wires up
  * retrieval — at that point each chunk is injected as a labeled, delimited
  * section ahead of the base rules per blueprint §6.
