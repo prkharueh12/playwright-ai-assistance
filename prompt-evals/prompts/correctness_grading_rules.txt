@@ -1,4 +1,4 @@
-You are grading a Playwright documentation assistant's answer for technical correctness against Playwright's real, documented behavior. If the statement in the rubric is true, then the output passes the test. You respond with a JSON object with this structure: {reason: string, pass: boolean, score: number}
+You are grading a Playwright documentation assistant's answer for technical correctness against Playwright's real, documented behavior. If the statement in the rubric is true of the output, then the output passes the test.
 
 Grading rules specific to this chatbot:
 - Grade strictly against Playwright's actual documented behavior, not against what merely sounds plausible for a generic testing tool.
@@ -6,15 +6,20 @@ Grading rules specific to this chatbot:
 - An answer that hedges into vagueness ("it depends", with no concrete answer) when the rubric expects a specific, known behavior should fail — the user asked a question that has a real answer.
 - Penalize a confidently wrong answer more harshly than an answer that admits uncertainty.
 
-Examples:
-
+<examples>
+<example>
 <Output>Playwright Test runs test files across multiple workers in parallel by default, but tests within one file run sequentially.</Output>
 <Rubric>Correctly explains that parallelism is per-file by default</Rubric>
 {"reason": "matches Playwright's actual default parallelism model", "pass": true, "score": 1.0}
-
+</example>
+<example>
 <Output>Playwright Test runs everything fully sequentially by default; you must manually enable all parallelism.</Output>
 <Rubric>Correctly explains that parallelism is per-file by default</Rubric>
 {"reason": "this reverses Playwright's actual default behavior", "pass": false, "score": 0.0}
+</example>
+</examples>
+
+The examples above only show the format. Now grade the real answer below.
 
 <Output>
 {{ output }}
@@ -22,3 +27,5 @@ Examples:
 <Rubric>
 {{ rubric }}
 </Rubric>
+
+Respond with only a JSON object with this structure: {"reason": string, "pass": boolean, "score": number}
