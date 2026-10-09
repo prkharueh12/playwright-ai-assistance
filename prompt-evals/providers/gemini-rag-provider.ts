@@ -1,6 +1,6 @@
 import { generateText } from "ai";
 import { getModel, DEFAULT_MODELS } from "../../lib/providers";
-import { buildSystemPrompt } from "../../lib/prompts";
+import { buildSystemPrompt, wrapUserQuery } from "../../lib/prompts";
 import { buildRagContext } from "../../lib/rag";
 import { calculateCost } from "./pricing";
 
@@ -54,7 +54,7 @@ export default class GeminiRagProvider {
     const system = buildSystemPrompt(promptChunks);
     const model = getModel("google", apiKey);
 
-    const { text, usage } = await generateText({ model, system, prompt: query });
+    const { text, usage } = await generateText({ model, system, prompt: wrapUserQuery(query) });
 
     const context = promptChunks
       .map((chunk) => `[${chunk.heading}](${chunk.url})\n${chunk.text}`)

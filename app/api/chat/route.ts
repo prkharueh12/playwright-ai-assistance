@@ -8,7 +8,7 @@ import {
   type UIMessage,
 } from "ai";
 import { getModel, isSupportedProvider } from "@/lib/providers";
-import { buildSystemPrompt } from "@/lib/prompts";
+import { buildSystemPrompt, wrapUserQuery } from "@/lib/prompts";
 import { checkRateLimit, getClientKey } from "@/lib/rate-limit";
 import { buildRagContext } from "@/lib/rag";
 import type { ChatMetadata } from "@/lib/types";
@@ -30,6 +30,22 @@ function getLastUserQuery(messages: UIMessage[]): string {
       .join("\n");
   }
   return "";
+}
+
+// Wraps every user text part (history included) so the model sees a clear
+// boundary between instructions and untrusted input (system.md rule 8).
+// Retrieval still uses the raw query from getLastUserQuery.
+function wrapUserMessages(messages: UIMessage[]): UIMessage[] {
+  return messages.map((message) =>
+    message.role !== "user"
+      ? message
+      : {
+          ...message,
+          parts: message.parts.map((part) =>
+            part.type === "text" ? { ...part, text: wrapUserQuery(part.text) } : part
+          ),
+        }
+  );
 }
 
 export async function POST(req: Request) {
@@ -94,7 +110,7 @@ export async function POST(req: Request) {
   const result = streamText({
     model,
     system: buildSystemPrompt(promptChunks),
-    messages: await convertToModelMessages(messages),
+    messages: await convertToModelMessages(wrapUserMessages(messages)),
     // Paces raw provider deltas into word-sized chunks server-side, so the
     // client re-renders (and re-parses markdown for) the streaming message
     // at a steady, coalesced rate instead of on whatever arbitrary chunk

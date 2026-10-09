@@ -1,5 +1,5 @@
 import { buildRagContext } from "../../lib/rag";
-import { buildSystemPrompt } from "../../lib/prompts";
+import { buildSystemPrompt, wrapUserQuery } from "../../lib/prompts";
 
 interface BuildRagPromptParams {
   vars: { query?: string };
@@ -25,6 +25,6 @@ export default async function buildRagPrompt({ vars }: BuildRagPromptParams): Pr
 
   return JSON.stringify([
     { role: "system", content: system },
-    { role: "user", content: query },
+    { role: "user", content: wrapUserQuery(query) },
   ]);
 }
